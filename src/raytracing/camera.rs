@@ -1,5 +1,5 @@
-use crate::ray::Ray;
-use crate::vec3::{Point, Vec3};
+use crate::raytracing::ray::Ray;
+use crate::raytracing::vec3::{Point, Vec3};
 
 pub struct Camera {
     pub aspect_ratio: f64,

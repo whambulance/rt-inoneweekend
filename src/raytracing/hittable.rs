@@ -1,11 +1,10 @@
-use crate::{
-    point,
+use crate::raytracing::{
     ray::Ray,
     vec3::{dot, Point, Vec3},
 };
 
 pub trait Hittable {
-    fn hit(&self, r: Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool;
 }
 
 pub struct HitRecord {
@@ -16,7 +15,7 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    fn default() -> HitRecord {
+    pub fn default() -> HitRecord {
         HitRecord {
             point: Point {
                 x: 0.0,
@@ -33,7 +32,7 @@ impl HitRecord {
         }
     }
 
-    pub fn set_face_normal(&mut self, ray: Ray, outward_normal: Vec3) {
+    pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: Vec3) {
         self.front_face = dot(ray.direction, outward_normal) < 0.0;
         if self.front_face {
             self.normal = outward_normal
@@ -52,7 +51,7 @@ impl HittableList {
         self.objects.push(object)
     }
 
-    pub fn hit(&self, ray: Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
+    pub fn hit(&self, ray: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
         let mut temp_rec: HitRecord = HitRecord::default();
         let mut hit_anything = false;
         let mut closest_so_far = ray_tmax;

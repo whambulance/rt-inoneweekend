@@ -1,4 +1,4 @@
-use crate::{
+use crate::raytracing::{
     hittable::{HitRecord, Hittable},
     ray::Ray,
     vec3::{dot, Vec3},
@@ -19,7 +19,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
         let oc = self.center - ray.origin;
         let a = ray.direction.length_squared();
         let h = dot(ray.direction, oc);

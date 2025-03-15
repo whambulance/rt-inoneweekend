@@ -1,8 +1,10 @@
-use crate::{
+use crate::raytracing::{
     color::Color,
-    shapes::Sphere,
     vec3::{dot, Point, Vec3},
 };
+
+use super::hittable::{HitRecord, HittableList};
+use super::INFINITY;
 
 #[derive(Clone, Copy)]
 pub struct Ray {
@@ -15,26 +17,42 @@ impl Ray {
         self.origin + (self.direction * f)
     }
 
-    pub fn color(&self) -> Color {
-        let sphere: Sphere;
+    pub fn color(&self, world: &HittableList) -> Color {
+        // let sphere: Sphere;
 
-        let sphere_center = Vec3 {
-            x: 0.0,
-            y: 0.0,
-            z: -1.0,
-        };
+        // let sphere_center = Vec3 {
+        //     x: 0.0,
+        //     y: 0.0,
+        //     z: -1.0,
+        // };
 
-        let t = self.hit_sphere(sphere_center, 0.5);
+        // let t = self.hit_sphere(sphere_center, 0.5);
 
-        if t > 0.0 {
-            let sphere_n = self.at(t) - sphere_center;
-            let n = sphere_n.unit_vector();
-            let color = Color {
-                r: n.x + 1.0,
-                g: n.y + 1.0,
-                b: n.z + 1.0,
+        // if t > 0.0 {
+        //     let sphere_n = self.at(t) - sphere_center;
+        //     let n = sphere_n.unit_vector();
+        //     let color = Color {
+        //         r: n.x + 1.0,
+        //         g: n.y + 1.0,
+        //         b: n.z + 1.0,
+        //     };
+        //     return color * 0.5;
+        // }
+
+        let mut hit_record: HitRecord = HitRecord::default();
+        if world.hit(self, 0.0, INFINITY, &mut hit_record) {
+            let vector = (Vec3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            } + hit_record.normal)
+                * 0.5;
+
+            return Color {
+                r: vector.x,
+                g: vector.y,
+                b: vector.z,
             };
-            return color * 0.5;
         }
 
         let unit_direction = self.direction.unit_vector();
