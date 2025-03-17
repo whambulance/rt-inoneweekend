@@ -1,2 +1,7 @@
 /target
 *.ppm
+flamegraph.svg
+perf.data
+perf.data.json
+perf.data.old
+perf.data.txt
