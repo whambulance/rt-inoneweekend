@@ -1,10 +1,9 @@
-use crate::raytracing::{
-    color::Color,
-    vec3::{dot, Point, Vec3},
-};
+use crate::raytracing::{color::Color, vec3::Vec3};
 
-use super::hittable::{HitRecord, HittableList};
-use super::INFINITY;
+use super::{
+    hittable::{HitRecord, HittableList},
+    interval::Interval,
+};
 
 #[derive(Clone, Copy)]
 pub struct Ray {
@@ -13,46 +12,66 @@ pub struct Ray {
 }
 
 impl Ray {
+    fn default() -> Self {
+        Self {
+            origin: Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            direction: Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+        }
+    }
+
     pub fn at(&self, f: f64) -> Vec3 {
         self.origin + (self.direction * f)
     }
 
-    pub fn color(&self, world: &HittableList) -> Color {
-        // let sphere: Sphere;
-
-        // let sphere_center = Vec3 {
-        //     x: 0.0,
-        //     y: 0.0,
-        //     z: -1.0,
-        // };
-
-        // let t = self.hit_sphere(sphere_center, 0.5);
-
-        // if t > 0.0 {
-        //     let sphere_n = self.at(t) - sphere_center;
-        //     let n = sphere_n.unit_vector();
-        //     let color = Color {
-        //         r: n.x + 1.0,
-        //         g: n.y + 1.0,
-        //         b: n.z + 1.0,
-        //     };
-        //     return color * 0.5;
-        // }
+    pub fn color(&self, world: &HittableList, depth: u32) -> Color {
+        if depth == 0 {
+            return Color {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+            };
+        }
 
         let mut hit_record: HitRecord = HitRecord::default();
-        if world.hit(self, 0.0, INFINITY, &mut hit_record) {
-            let vector = (Vec3 {
-                x: 1.0,
-                y: 1.0,
-                z: 1.0,
-            } + hit_record.normal)
-                * 0.5;
 
-            return Color {
-                r: vector.x,
-                g: vector.y,
-                b: vector.z,
-            };
+        if world.hit(
+            self,
+            Interval {
+                min: 0.001,
+                max: f64::INFINITY,
+            },
+            &mut hit_record,
+        ) {
+            let mut scattered: Ray = Ray::default();
+
+            if hit_record
+                .material
+                .scatter(self, &hit_record, &mut scattered)
+            {
+                let attenuation = hit_record.material.attenuation();
+                return scattered.color(world, depth - 1) * attenuation;
+            } else {
+                return Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.0,
+                };
+            }
+            // let direction = hit_record.normal + Vec3::random_unit_vector();
+            // let new_ray = Ray {
+            //     origin: hit_record.point,
+            //     direction,
+            // };
+
+            // return new_ray.color(world, depth - 1) * 0.7;
         }
 
         let unit_direction = self.direction.unit_vector();
@@ -75,21 +94,6 @@ impl Ray {
             r: combined.x,
             g: combined.y,
             b: combined.z,
-        }
-    }
-
-    pub fn hit_sphere(self, center: Point, radius: f64) -> f64 {
-        let oc = center - self.origin;
-        let a = self.direction.length_squared();
-        let h = dot(self.direction, oc);
-        let c = oc.length_squared() - radius * radius;
-
-        let discriminant = h * h - a * c;
-
-        if discriminant < 0.0 {
-            -1.0
-        } else {
-            (h - discriminant.sqrt()) / a
         }
     }
 }

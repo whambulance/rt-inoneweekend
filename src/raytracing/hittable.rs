@@ -3,13 +3,20 @@ use crate::raytracing::{
     vec3::{dot, Point, Vec3},
 };
 
+use super::{
+    color::Color,
+    interval::Interval,
+    materials::{Lambertian, Material},
+};
+
 pub trait Hittable {
-    fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: &Ray, ray_t: Interval, rec: &mut HitRecord) -> bool;
 }
 
 pub struct HitRecord {
     pub point: Point,
     pub normal: Vec3,
+    pub material: Box<dyn Material>,
     pub t: f64,
     pub front_face: bool,
 }
@@ -27,6 +34,13 @@ impl HitRecord {
                 y: 0.0,
                 z: 0.0,
             },
+            material: Box::new(Lambertian {
+                albedo: Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.0,
+                },
+            }),
             front_face: false,
             t: 0.0,
         }
@@ -51,13 +65,20 @@ impl HittableList {
         self.objects.push(object)
     }
 
-    pub fn hit(&self, ray: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
+    pub fn hit(&self, ray: &Ray, ray_t: Interval, rec: &mut HitRecord) -> bool {
         let mut temp_rec: HitRecord = HitRecord::default();
         let mut hit_anything = false;
-        let mut closest_so_far = ray_tmax;
+        let mut closest_so_far = ray_t.max;
 
         for object in &self.objects {
-            let hit = object.hit(ray, ray_tmin, closest_so_far, &mut temp_rec);
+            let hit = object.hit(
+                ray,
+                Interval {
+                    min: ray_t.min,
+                    max: closest_so_far,
+                },
+                &mut temp_rec,
+            );
             if hit {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
@@ -65,6 +86,7 @@ impl HittableList {
                 rec.front_face = temp_rec.front_face;
                 rec.point = temp_rec.point;
                 rec.t = temp_rec.t;
+                rec.material = temp_rec.material.clone();
             }
         }
 
