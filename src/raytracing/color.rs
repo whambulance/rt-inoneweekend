@@ -2,6 +2,8 @@ use std::ops::{AddAssign, Mul, MulAssign};
 
 use crate::raytracing::interval::Interval;
 
+use super::{random_float, random_float_range};
+
 const MULTIPLIER: f64 = 255.999;
 
 #[derive(Clone, Copy)]
@@ -42,6 +44,22 @@ impl Color {
         let bbyte = (256.0 * INTENSITY.clamp(b)) as u32;
 
         println!("{} {} {}", rbyte, gbyte, bbyte);
+    }
+
+    pub fn random() -> Self {
+        Self {
+            r: random_float(),
+            g: random_float(),
+            b: random_float(),
+        }
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Self {
+        Self {
+            r: random_float_range(min, max),
+            g: random_float_range(min, max),
+            b: random_float_range(min, max),
+        }
     }
 }
 

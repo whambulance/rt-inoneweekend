@@ -60,6 +60,14 @@ impl Vec3 {
         *self - other * dot(*self, other) * 2.0
     }
 
+    pub fn refract(&self, normal: Vec3, etai_over_etat: f64) -> Self {
+        let cos_theta: f64 = dot(*self * -1.0, normal).min(1.0);
+        let r_out_perp: Vec3 = (*self + normal * cos_theta) * etai_over_etat;
+        let r_out_parallel: Vec3 = normal * (1.0 - r_out_perp.length_squared()).abs().sqrt() * -1.0;
+
+        r_out_perp + r_out_parallel
+    }
+
     pub fn random() -> Vec3 {
         Vec3 {
             x: random_float(),
@@ -148,6 +156,19 @@ pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
     Vec3 {
         x: (u.y * v.z) - (u.z * v.y),
         y: (u.z * v.x) - (u.x * v.z),
-        z: (u.x * v.y) - (u.y * v.z),
+        z: (u.x * v.y) - (u.y * v.x),
+    }
+}
+
+pub fn random_in_unit_disk() -> Vec3 {
+    loop {
+        let p = Vec3::new(
+            random_float_range(-1.0, 1.0),
+            random_float_range(-1.0, 1.0),
+            0.0,
+        );
+        if p.length_squared() < 1.0 {
+            return p;
+        }
     }
 }
